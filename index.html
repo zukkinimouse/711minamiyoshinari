@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>セブンイレブン 仙台南吉成店</title>
+    <!-- Google Fonts：日本語対応の洗練されたフォント＝家の外壁素材 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- jsQR：カメラ映像からQRを解読するライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <style>
+        /* ===== デザイントークン ===== */
+        :root {
+            --red:      #ee0000;
+            --green:    #008060;
+            --orange:   #f37021;
+            --bg:       #f0f2f1;
+            --white:    #ffffff;
+            --text:     #1a1a1a;
+            --text-sub: #666;
+            --radius-card: 18px;
+            --shadow:   0 6px 20px rgba(0,0,0,0.09);
+            --shadow-g: 0 4px 16px rgba(0,128,96,0.38);
+            --shadow-r: 0 4px 16px rgba(238,0,0,0.30);
+            --shadow-o: 0 4px 16px rgba(243,112,33,0.36);
+        }
+
+        /* ===== リセット & ベース ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { -webkit-tap-highlight-color: transparent; }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 80px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        img { display: block; max-width: 100%; }
+        a  { text-decoration: none; color: inherit; }
+
+        /* ===== トップヘッダー ===== */
+        .site-header {
+            position: sticky; top: 0; z-index: 100;
+            background: var(--white);
+            border-bottom: 3px solid var(--red);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .site-header-logo {
+            display: flex; align-items: center; gap: 8px;
+        }
+        /* セブンカラーの縦3本ストライプロゴ風 */
+        .logo-stripes {
+            display: flex; gap: 3px; align-items: stretch; height: 28px;
+        }
+        .logo-stripes span {
+            width: 7px; border-radius: 2px;
+        }
+        .logo-stripes span:nth-child(1) { background: var(--red); }
+        .logo-stripes span:nth-child(2) { background: var(--green); }
+        .logo-stripes span:nth-child(3) { background: var(--orange); }
+        .site-header-name {
+            display: flex; flex-direction: column;
+        }
+        .site-header-name .store-chain {
+            font-size: 0.62rem; font-weight: 900;
+            letter-spacing: 0.12em; color: var(--red);
+            text-transform: uppercase;
+        }
+        .site-header-name .store-name {
+            font-size: 0.9rem; font-weight: 900;
+            letter-spacing: 0.02em; color: var(--text);
+            line-height: 1.2;
+        }
+        .site-header-hours {
+            text-align: right;
+        }
+        .hours-badge {
+            background: var(--green);
+            color: #fff; font-size: 0.6rem; font-weight: 700;
+            padding: 3px 8px; border-radius: 20px;
+            letter-spacing: 0.06em;
+        }
+        .hours-text {
+            font-size: 0.65rem; color: var(--text-sub);
+            margin-top: 3px; letter-spacing: 0.04em;
+        }
+
+        /* ===== 1. キャンペーンカルーセル ===== */
+        .hero-container {
+            position: relative; width: 100%; height: 54vh; overflow: hidden;
+        }
+        .carousel {
+            display: flex; height: 100%;
+            overflow-x: auto; scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .carousel::-webkit-scrollbar { display: none; }
+        .slide {
+            flex: 0 0 100%; scroll-snap-align: start;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            text-align: center; padding: 32px 24px; color: #fff;
+        }
+        .slide:nth-child(1) { background: linear-gradient(150deg, var(--red) 0%, #c80000 55%, #ff4444 100%); }
+        .slide:nth-child(2) { background: linear-gradient(150deg, var(--green) 0%, #005a40 55%, #00b386 100%); }
+        .slide:nth-child(3) { background: linear-gradient(150deg, var(--orange) 0%, #c45500 55%, #ffc06a 100%); }
+        .slide-eyebrow {
+            font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em;
+            text-transform: uppercase; opacity: 0.8; margin-bottom: 8px;
+            background: rgba(255,255,255,0.2); padding: 3px 12px; border-radius: 20px;
+        }
+        .slide h2 {
+            font-size: 1.75rem; font-weight: 900; letter-spacing: 0.02em;
+            line-height: 1.25; text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+            margin-bottom: 8px;
+        }
+        .slide p { font-size: 0.9rem; opacity: 0.88; }
+        .hero-dots {
+            position: absolute; bottom: 16px; left: 50%;
+            transform: translateX(-50%); display: flex; gap: 7px;
+        }
+        .hero-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: rgba(255,255,255,0.38); transition: all 0.3s;
+        }
+        .hero-dot.active { background: #fff; transform: scale(1.4); }
+
+        /* ===== セクションラベル（セクション間の見出し帯） ===== */
+        .section-label {
+            display: flex; align-items: center; gap: 8px;
+            padding: 20px 20px 8px;
+        }
+        .section-label-line {
+            flex: 1; height: 1px; background: #d0d0d0;
+        }
+        .section-label-text {
+            font-size: 0.68rem; font-weight: 900; letter-spacing: 0.15em;
+            color: var(--text-sub); text-transform: uppercase; white-space: nowrap;
+        }
+
+        /* ===== カード共通 ===== */
+        .card {
+            background: var(--white); margin: 0 14px 14px;
+            border-radius: var(--radius-card); box-shadow: var(--shadow);
+            overflow: hidden;
+            /* fadeIn＝スクロールで現れるアニメーション（家の照明が徐々に点く） */
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .card.visible { opacity: 1; transform: translateY(0); }
+
+        .card-header {
+            padding: 15px 18px 11px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .card-header-green  { background: linear-gradient(135deg, var(--green), #005a40); }
+        .card-header-red    { background: linear-gradient(135deg, var(--red),   #a80000); }
+        .card-header-orange { background: linear-gradient(135deg, var(--orange), #c45500); }
+        .card-header-dark   { background: linear-gradient(135deg, #222, #444); }
+        .card-header-icon { font-size: 1.9rem; line-height: 1; flex-shrink: 0; }
+        .card-header-text h2 {
+            color: #fff; font-size: 1rem; font-weight: 900; letter-spacing: 0.04em;
+        }
+        .card-header-text p {
+            color: rgba(255,255,255,0.78); font-size: 0.7rem; margin-top: 3px;
+        }
+
+        /* ===== 2. スタンプカード ===== */
+        .progress-wrap {
+            height: 5px; background: rgba(255,255,255,0.15);
+            border-radius: 20px; margin: 6px 18px 0;
+        }
+        .progress-bar {
+            height: 100%; background: var(--orange);
+            border-radius: 20px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+        }
+        .progress-label {
+            font-size: 0.65rem; color: rgba(255,255,255,0.82);
+            text-align: right; padding: 3px 18px 12px;
+        }
+        .stamp-body { padding: 14px 14px 18px; }
+        .coupon-msg {
+            display: none;
+            background: linear-gradient(135deg, var(--red), #a80000);
+            color: #fff; font-weight: 700; border-radius: 12px;
+            padding: 13px 14px; text-align: center; margin-bottom: 14px;
+            font-size: 0.92rem; letter-spacing: 0.04em;
+            box-shadow: var(--shadow-r); animation: fadeUp 0.4s ease;
+        }
+        .stamp-grid {
+            display: grid; grid-template-columns: repeat(5, 1fr);
+            gap: 7px; margin-bottom: 16px;
+        }
+        .stamp-slot {
+            aspect-ratio: 1/1; background: #f0f0f0; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px dashed #ddd; overflow: hidden; transition: all 0.2s;
+        }
+        .stamp-slot svg { width: 58%; height: 58%; opacity: 0.22; }
+        .stamp-slot.active {
+            background: linear-gradient(135deg, #fff3cc, var(--orange));
+            border: 2.5px solid var(--orange);
+            box-shadow: 0 2px 10px rgba(243,112,33,0.38);
+            animation: pop 0.38s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        .stamp-slot.active svg { opacity: 1; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.22)); }
+        .stamp-slot:nth-child(10) {
+            border-color: var(--red);
+            background: linear-gradient(135deg, #f5f0f0, #ffd8d8);
+        }
+        .stamp-slot:nth-child(10).active {
+            background: linear-gradient(135deg, #ffe0e0, var(--red));
+            border-color: var(--red);
+            box-shadow: 0 2px 10px rgba(238,0,0,0.32);
+        }
+
+        /* ===== ボタン ===== */
+        .btn-group { display: flex; gap: 9px; }
+        .btn {
+            flex: 1; padding: 13px 10px; border: none; border-radius: 50px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: transform 0.14s ease, box-shadow 0.14s ease;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-green { background: linear-gradient(135deg, var(--green), #005a40); color: #fff; box-shadow: var(--shadow-g); }
+        .btn-gray  { background: #efefef; color: #777; box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+
+        /* ===== 3. アクセス ===== */
+        .map-body { padding: 14px; }
+        .map-frame { width: 100%; height: 250px; border-radius: 12px; overflow: hidden; }
+        .map-frame iframe { width: 100%; height: 100%; border: none; }
+        .address-block {
+            margin-top: 12px; padding: 13px 15px;
+            background: var(--bg); border-radius: 12px;
+            font-size: 0.86rem; line-height: 1.75; color: #555;
+        }
+        .address-label {
+            font-size: 0.68rem; font-weight: 900; color: var(--green);
+            letter-spacing: 0.1em; text-transform: uppercase; display: block;
+            margin-bottom: 1px;
+        }
+        .address-block + .address-block { margin-top: 8px; }
+        .nav-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            margin-top: 13px; padding: 14px;
+            background: linear-gradient(135deg, var(--green), #005a40);
+            color: #fff; border: none; border-radius: 50px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.88rem; font-weight: 700; width: 100%; cursor: pointer;
+            box-shadow: var(--shadow-g); letter-spacing: 0.05em;
+            transition: transform 0.14s;
+        }
+        .nav-btn:active { transform: scale(0.97); }
+
+        /* ===== 4. 店長おすすめ ===== */
+        .owner-section {
+            margin: 0 14px 14px; border-radius: var(--radius-card);
+            box-shadow: var(--shadow); overflow: hidden;
+            opacity: 0; transform: translateY(16px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .owner-section.visible { opacity: 1; transform: translateY(0); }
+
+        .owner-carousel-wrap { position: relative; background: #fff; }
+        .owner-carousel {
+            display: flex; overflow-x: auto;
+            scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+        }
+        .owner-carousel::-webkit-scrollbar { display: none; }
+        .owner-slide { flex: 0 0 100%; scroll-snap-align: start; position: relative; }
+        .owner-slide-img {
+            width: 100%; aspect-ratio: 4/3;
+            object-fit: cover; object-position: center; display: block;
+        }
+        .owner-slide-placeholder {
+            width: 100%; aspect-ratio: 4/3;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.85rem; color: #aaa;
+        }
+
+        /* リボン */
+        .owner-ribbon {
+            position: absolute; top: 14px; left: -6px; z-index: 3;
+            background: var(--red); color: #fff;
+            font-size: 0.65rem; font-weight: 900; letter-spacing: 0.14em;
+            padding: 5px 14px 5px 12px; border-radius: 0 4px 4px 0;
+            box-shadow: 2px 2px 8px rgba(0,0,0,0.22);
+        }
+        .owner-ribbon::after {
+            content: ''; position: absolute; bottom: -6px; left: 0;
+            border-top: 6px solid #990000;
+            border-left: 6px solid transparent;
+        }
+
+        /* 下部オーバーレイ */
+        .owner-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0; z-index: 2;
+            padding: 44px 16px 16px;
+            background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, transparent 100%);
+        }
+        .owner-comment {
+            color: #fff; font-size: 0.98rem; font-weight: 900;
+            line-height: 1.5; text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+            margin-bottom: 11px;
+        }
+        .owner-comment .hl { color: #ffc96b; }
+        .owner-profile { display: flex; align-items: center; gap: 10px; }
+        .owner-avatar {
+            width: 40px; height: 40px; border-radius: 50%;
+            border: 2.5px solid rgba(255,255,255,0.9);
+            overflow: hidden; flex-shrink: 0;
+        }
+        .owner-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+        .owner-avatar-ph {
+            width: 100%; height: 100%; display: flex;
+            align-items: center; justify-content: center;
+            font-size: 1.2rem; background: #d4d4d4;
+        }
+        .owner-label { font-size: 0.56rem; color: rgba(255,255,255,0.6); letter-spacing: 0.12em; font-weight: 700; text-transform: uppercase; }
+        .owner-name  { font-size: 0.84rem; font-weight: 900; color: #fff; }
+        .owner-dots {
+            background: #fff; display: flex;
+            justify-content: center; gap: 6px; padding: 9px 0;
+        }
+        .owner-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #ddd; transition: all 0.3s;
+        }
+        .owner-dot.active { background: var(--red); transform: scale(1.4); }
+
+        /* ===== 5. 求人 ===== */
+        .job-body { padding: 14px 14px 18px; }
+        .job-closed {
+            display: flex; align-items: center; gap: 12px;
+            padding: 18px 14px; border-radius: 12px;
+            background: #f8f8f8; border: 2px dashed #ddd; color: #999;
+        }
+        .job-closed-icon { font-size: 1.7rem; }
+        .job-closed-title { font-size: 0.88rem; font-weight: 700; color: #666; }
+        .job-closed-sub   { font-size: 0.72rem; color: #aaa; margin-top: 2px; }
+        .job-list { display: flex; flex-direction: column; gap: 12px; }
+        .job-item { border-radius: 12px; overflow: hidden; border: 1.5px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .job-item-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 11px 14px;
+            background: linear-gradient(135deg, var(--orange), #c45500);
+        }
+        .job-title { color: #fff; font-weight: 900; font-size: 0.95rem; }
+        .job-badge {
+            background: #fff; color: var(--orange);
+            font-size: 0.65rem; font-weight: 900;
+            padding: 3px 9px; border-radius: 20px;
+        }
+        .job-details { padding: 12px 14px; }
+        .job-row {
+            display: flex; gap: 8px; font-size: 0.84rem;
+            line-height: 1.65; color: #444;
+            padding: 5px 0; border-bottom: 1px solid #f2f2f2;
+        }
+        .job-row:last-child { border-bottom: none; }
+        .job-row-label {
+            min-width: 50px; font-weight: 700;
+            color: var(--green); font-size: 0.73rem; padding-top: 2px;
+        }
+        .apply-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            margin-top: 13px; padding: 14px;
+            background: linear-gradient(135deg, var(--orange), #c45500);
+            color: #fff; border: none; border-radius: 50px;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.88rem; font-weight: 700; width: 100%; cursor: pointer;
+            box-shadow: var(--shadow-o); letter-spacing: 0.05em; transition: transform 0.14s;
+        }
+        .apply-btn:active { transform: scale(0.97); }
+
+        /* ===== フッターナビ ===== */
+        .footer-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+            background: var(--white);
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+        }
+        .footer-nav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 9px 4px 10px; gap: 3px;
+            font-size: 0.6rem; font-weight: 700; color: #aaa;
+            letter-spacing: 0.04em; cursor: pointer;
+            transition: color 0.2s;
+            border: none; background: none; font-family: 'Noto Sans JP', sans-serif;
+        }
+        .footer-nav-item.active { color: var(--green); }
+        .footer-nav-item svg { width: 22px; height: 22px; }
+
+        /* ===== アニメーション ===== */
+
+        /* ===== QRスキャナーモーダル ===== */
+        /* モーダル＝家の玄関：開いている間は後ろは暗くなる */
+        .qr-modal {
+            display: none;
+            position: fixed; inset: 0; z-index: 200;
+            background: rgba(0,0,0,0.88);
+            flex-direction: column; align-items: center; justify-content: center;
+            padding: 24px;
+        }
+        .qr-modal.open { display: flex; animation: fadeUp 0.25s ease; }
+        .qr-modal-inner {
+            background: #fff; border-radius: 20px; overflow: hidden;
+            width: 100%; max-width: 360px;
+        }
+        .qr-modal-header {
+            background: linear-gradient(135deg, var(--green), #005a40);
+            padding: 14px 18px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .qr-modal-title { color: #fff; font-weight: 900; font-size: 1rem; }
+        .qr-close-btn {
+            background: rgba(255,255,255,0.2); border: none; color: #fff;
+            width: 30px; height: 30px; border-radius: 50%;
+            font-size: 1.1rem; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .qr-viewfinder-wrap {
+            position: relative; background: #000;
+            width: 100%; aspect-ratio: 1/1; overflow: hidden;
+        }
+        /* カメラ映像 */
+        #qrVideo { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* 狙い枠（四隅の白い枠） */
+        .qr-frame {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .qr-frame-inner {
+            width: 60%; aspect-ratio: 1/1; position: relative;
+        }
+        .qr-frame-inner::before,
+        .qr-frame-inner::after,
+        .qr-frame-corner-br,
+        .qr-frame-corner-bl {
+            content: ''; position: absolute;
+            width: 22px; height: 22px; border-color: #fff; border-style: solid;
+        }
+        .qr-frame-inner::before  { top:0; left:0;  border-width: 3px 0 0 3px; }
+        .qr-frame-inner::after   { top:0; right:0; border-width: 3px 3px 0 0; }
+        .qr-frame-corner-br { bottom:0; right:0; border-width: 0 3px 3px 0; }
+        .qr-frame-corner-bl { bottom:0; left:0;  border-width: 0 0 3px 3px; }
+        /* スキャン中の走査線アニメ */
+        .qr-scanline {
+            position: absolute; left: 20%; right: 20%; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--orange), transparent);
+            animation: scanline 2s ease-in-out infinite;
+        }
+        @keyframes scanline {
+            0%   { top: 20%; opacity: 1; }
+            100% { top: 80%; opacity: 0.4; }
+        }
+        .qr-status {
+            padding: 14px 18px; text-align: center;
+            font-size: 0.82rem; color: var(--text-sub); line-height: 1.5;
+        }
+        .qr-status.success { color: var(--green); font-weight: 700; }
+        .qr-status.error   { color: var(--red);   font-weight: 700; }
+        /* 非表示のcanvas（QR解析に使う） */
+        #qrCanvas { display: none; }
+        @keyframes pop    { 0%{transform:scale(0.5);opacity:0.5} 70%{transform:scale(1.2)} 100%{transform:scale(1);opacity:1} }
+        @keyframes fadeUp { from{transform:translateY(10px);opacity:0} to{transform:translateY(0);opacity:1} }
+    </style>
+</head>
+<body>
+
+
+    <!-- QRスキャナーモーダル -->
+    <div class="qr-modal" id="qrModal">
+        <div class="qr-modal-inner">
+            <div class="qr-modal-header">
+                <span class="qr-modal-title">📷 QRコードをかざして</span>
+                <button class="qr-close-btn" onclick="closeQR()">✕</button>
+            </div>
+            <div class="qr-viewfinder-wrap">
+                <video id="qrVideo" autoplay playsinline muted></video>
+                <div class="qr-frame">
+                    <div class="qr-frame-inner">
+                        <div class="qr-frame-corner-br"></div>
+                        <div class="qr-frame-corner-bl"></div>
+                        <div class="qr-scanline"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="qr-status" id="qrStatus">QRコードを枠内に合わせてください</div>
+            <canvas id="qrCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- トップヘッダー -->
+    <header class="site-header">
+        <div class="site-header-logo">
+            <div class="logo-stripes">
+                <span></span><span></span><span></span>
+            </div>
+            <div class="site-header-name">
+                <span class="store-chain">Seven-Eleven</span>
+                <span class="store-name">仙台南吉成店</span>
+            </div>
+        </div>
+        <div class="site-header-hours">
+            <div class="hours-badge">OPEN 24H</div>
+            <div class="hours-text">年中無休</div>
+        </div>
+    </header>
+
+    <!-- 1. カルーセル -->
+    <section class="hero-container">
+        <div class="carousel" id="carousel">
+            <div class="slide">
+                <div class="slide-eyebrow">Campaign</div>
+                <h2>🍙 おにぎり<br>100円セール</h2>
+                <p>仙台南吉成店 期間限定！</p>
+            </div>
+            <div class="slide">
+                <div class="slide-eyebrow">Campaign</div>
+                <h2>🍗 揚げ物<br>10%引き</h2>
+                <p>夕食のおかずにどうぞ</p>
+            </div>
+            <div class="slide">
+                <div class="slide-eyebrow">New Arrival</div>
+                <h2>🎰 一番くじ<br>入荷！</h2>
+                <p>残りわずか・A賞あります</p>
+            </div>
+        </div>
+        <div class="hero-dots" id="heroDots">
+            <div class="hero-dot active"></div>
+            <div class="hero-dot"></div>
+            <div class="hero-dot"></div>
+        </div>
+    </section>
+
+    <!-- セクションラベル -->
+    <div class="section-label">
+        <div class="section-label-line"></div>
+        <span class="section-label-text">Stamp Card</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <!-- 2. スタンプカード -->
+    <div class="card">
+        <div class="card-header card-header-green">
+            <div class="card-header-icon">🎫</div>
+            <div class="card-header-text">
+                <h2>デジタルスタンプカード</h2>
+                <p>南吉成店限定 · 10個で500円引き</p>
+            </div>
+        </div>
+        <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:0%"></div></div>
+        <div class="progress-label" id="progressLabel">0 / 10</div>
+        <div class="stamp-body">
+            <div id="couponMsg" class="coupon-msg">🎉 500円引きクーポン獲得！　レジでご提示ください</div>
+            <div class="stamp-grid" id="stampGrid"></div>
+            <div class="btn-group">
+                <button class="btn btn-green" onclick="openQR()">📷 QRコードをスキャン</button>
+                <button class="btn btn-gray"  onclick="resetStamps()">リセット</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-label">
+        <div class="section-label-line"></div>
+        <span class="section-label-text">Staff Pick</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <!-- 4. 店長おすすめ -->
+    <div class="owner-section">
+        <div class="card-header card-header-dark">
+            <div class="card-header-icon">👨‍💼</div>
+            <div class="card-header-text">
+                <h2>従業員のおすすめ</h2>
+                <p>南吉成店 · 今週のイチオシ商品</p>
+            </div>
+        </div>
+        <div class="owner-carousel-wrap">
+            <div class="owner-carousel" id="ownerCarousel">
+
+                <!-- スライド1 -->
+                <div class="owner-slide">
+                    <img class="owner-slide-img" src="owner.png" alt="商品1">
+                    <div class="owner-ribbon">STAFF PICK</div>
+                    <div class="owner-overlay">
+                        <p class="owner-comment">「<span class="hl">このサンドイッチ、</span>マジで毎日食べたい！<br>朝ごはんに最高です。」</p>
+                        <div class="owner-profile">
+                            <div class="owner-avatar"><div class="owner-avatar-ph">👤</div></div>
+                            <div>
+                                <div class="owner-label">オーナーより</div>
+                                <div class="owner-name">川江 オーナー</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- スライド2 -->
+                <div class="owner-slide">
+                    <img class="owner-slide-img" src="tencho.png" alt="商品2">
+                    <div class="owner-ribbon">STAFF PICK</div>
+                    <div class="owner-overlay">
+                        <p class="owner-comment">「セブンの<span class="hl">オリジナルデザート、</span><br>自分へのご褒美に！」</p>
+                        <div class="owner-profile">
+                            <div class="owner-avatar"><div class="owner-avatar-ph">👤</div></div>
+                            <div>
+                                <div class="owner-label">店長より</div>
+                                <div class="owner-name">綾瀬 店長</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- スライド3（非表示中：表示するにはstyle="display:none;"を削除） -->
+                <div class="owner-slide" style="display:none;">
+                    <div class="owner-slide-placeholder" style="background:linear-gradient(135deg,#bbdefb,#90caf9);">📸 商品写真3</div>
+                    <div class="owner-ribbon">STAFF PICK</div>
+                    <div class="owner-overlay">
+                        <p class="owner-comment">「<span class="hl">期間限定スイーツ、</span><br>売り切れ前にぜひ！」</p>
+                        <div class="owner-profile">
+                            <div class="owner-avatar"><div class="owner-avatar-ph">👤</div></div>
+                            <div>
+                                <div class="owner-label">店長より</div>
+                                <div class="owner-name">田中 店長</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="owner-dots" id="ownerDots">
+                <div class="owner-dot active"></div>
+                <div class="owner-dot"></div>
+                <div class="owner-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-label">
+        <div class="section-label-line"></div>
+        <span class="section-label-text">Access</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <!-- 3. アクセス -->
+    <div class="card">
+        <div class="card-header card-header-red">
+            <div class="card-header-icon">📍</div>
+            <div class="card-header-text"><h2>アクセス</h2><p>仙台市青葉区南吉成 · 駐車場完備</p></div>
+        </div>
+        <div class="map-body">
+            <div class="map-frame">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3132.321151478174!2d140.8175784!3d38.2710173!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5f89937966955555%3A0x6734c5617651a238!2z44K744OW44OzLeOCpOODrOODluODsyDku5nlj7DljZflkInmiJDlupc!5e0!3m2!1sja!2sjp!4v1700000000000!5m2!1sja!2sjp" allowfullscreen loading="lazy"></iframe>
+            </div>
+            <div class="address-block">
+                <span class="address-label">住所</span>
+                宮城県仙台市青葉区南吉成３丁目１−２１
+            </div>
+            <div class="address-block">
+                <span class="address-label">駐車場</span>
+                広々完備！お気軽にお立ち寄りください。
+            </div>
+            <a class="nav-btn" href="https://maps.google.com/?q=セブンイレブン仙台南吉成店" target="_blank">
+                🚗 Googleマップで経路を見る
+            </a>
+        </div>
+    </div>
+
+    <div class="section-label">
+        <div class="section-label-line"></div>
+        <span class="section-label-text">Recruit</span>
+        <div class="section-label-line"></div>
+    </div>
+
+    <!-- 5. 求人 -->
+    <div class="card">
+        <div class="card-header card-header-orange">
+            <div class="card-header-icon">💼</div>
+            <div class="card-header-text"><h2>スタッフ募集</h2><p>一緒に働きませんか？ · 南吉成店</p></div>
+        </div>
+        <div class="job-body" id="jobBody"></div>
+    </div>
+
+    <!-- フッターナビ -->
+    <nav class="footer-nav">
+        <button class="footer-nav-item active" onclick="scrollToTop()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            ホーム
+        </button>
+        <button class="footer-nav-item" onclick="scrollToStamp()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>
+            スタンプ
+        </button>
+        <button class="footer-nav-item" onclick="scrollToMap()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="11" r="3"/><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/></svg>
+            アクセス
+        </button>
+        <button class="footer-nav-item" onclick="scrollToJob()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+            求人
+        </button>
+    </nav>
+
+    <script>
+        /* ===== 求人データ ===== */
+        const JOBS = [
+            { title: 'レジ・品出しスタッフ', type: 'アルバイト', wage: '時給 1,038円〜（深夜25%UP）', hours: '夕方 17:00〜（時間帯相談可）', note: '週2日〜OK · 学生歓迎' },
+        ];
+        const jobBody = document.getElementById('jobBody');
+        if (JOBS.length === 0) {
+            jobBody.innerHTML = `<div class="job-closed"><div class="job-closed-icon">🙏</div><div><div class="job-closed-title">現在は募集を停止しています</div><div class="job-closed-sub">募集再開の際はこちらでお知らせします</div></div></div>`;
+        } else {
+            const list = document.createElement('div');
+            list.className = 'job-list';
+            JOBS.forEach(j => {
+                list.innerHTML += `<div class="job-item"><div class="job-item-header"><span class="job-title">${j.title}</span><span class="job-badge">${j.type}</span></div><div class="job-details"><div class="job-row"><span class="job-row-label">給　与</span><span>${j.wage}</span></div><div class="job-row"><span class="job-row-label">時　間</span><span>${j.hours}</span></div><div class="job-row"><span class="job-row-label">備　考</span><span>${j.note}</span></div></div></div>`;
+            });
+            jobBody.appendChild(list);
+            jobBody.innerHTML += `<a class="apply-btn" href="tel:0222776311">📞 電話で応募する</a>`;
+        }
+
+        /* ===== コーヒーカップSVG ===== */
+        const STAMP_SVG = `<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M14 22 L18 54 H46 L50 22 Z" fill="currentColor"/><rect x="12" y="18" width="40" height="6" rx="3" fill="currentColor"/><path d="M50 28 Q62 28 62 38 Q62 48 50 48" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M16 18 Q32 10 48 18" stroke="currentColor" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M26 14 Q24 9 26 5" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M32 12 Q30 7 32 3" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M38 14 Q36 9 38 5" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`;
+
+        /* ===== カルーセル ===== */
+        const carousel = document.getElementById('carousel');
+        const heroDots = document.querySelectorAll('#heroDots .hero-dot');
+        let heroIdx = 0;
+        setInterval(() => {
+            heroIdx = (heroIdx + 1) % 3;
+            carousel.scrollTo({ left: carousel.offsetWidth * heroIdx, behavior: 'smooth' });
+            heroDots.forEach((d, i) => d.classList.toggle('active', i === heroIdx));
+        }, 3500);
+
+        /* ===== 店長おすすめカルーセル ===== */
+        const ownerCarousel = document.getElementById('ownerCarousel');
+        const ownerDots = document.querySelectorAll('#ownerDots .owner-dot');
+        const ownerSlides = [...ownerCarousel.querySelectorAll('.owner-slide')].filter(s => s.style.display !== 'none');
+        let ownerIdx = 0;
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    ownerIdx = ownerSlides.indexOf(e.target);
+                    ownerDots.forEach((d, i) => d.classList.toggle('active', i === ownerIdx));
+                }
+            });
+        }, { root: ownerCarousel, threshold: 0.6 });
+        ownerSlides.forEach(s => observer.observe(s));
+        setInterval(() => {
+            ownerIdx = (ownerIdx + 1) % ownerSlides.length;
+            ownerCarousel.scrollTo({ left: ownerCarousel.offsetWidth * ownerIdx, behavior: 'smooth' });
+        }, 5000);
+
+        /* ===== スタンプカード ===== */
+        const MAX_STAMPS = 10;
+        const stampGrid  = document.getElementById('stampGrid');
+        const couponMsg  = document.getElementById('couponMsg');
+        const progressBar   = document.getElementById('progressBar');
+        const progressLabel = document.getElementById('progressLabel');
+        let currentStamps = parseInt(localStorage.getItem('seven_shop_stamps') || '0');
+        renderStamps();
+        function renderStamps() {
+            stampGrid.innerHTML = '';
+            for (let i = 0; i < MAX_STAMPS; i++) {
+                const div = document.createElement('div');
+                div.className = 'stamp-slot';
+                div.innerHTML = STAMP_SVG;
+                div.querySelector('svg').style.color = i < currentStamps ? ((i === 9) ? '#ee0000' : '#f37021') : '#bbb';
+                if (i < currentStamps) div.classList.add('active');
+                stampGrid.appendChild(div);
+            }
+            progressBar.style.width = (currentStamps / MAX_STAMPS * 100) + '%';
+            progressLabel.textContent = `${currentStamps} / ${MAX_STAMPS}`;
+            couponMsg.style.display = currentStamps >= MAX_STAMPS ? 'block' : 'none';
+        }
+        function addStamp() {
+            if (currentStamps < MAX_STAMPS) { currentStamps++; localStorage.setItem('seven_shop_stamps', currentStamps); renderStamps(); }
+            else alert('スタンプは満タンです！クーポンをご利用ください。');
+        }
+        function resetStamps() { currentStamps = 0; localStorage.setItem('seven_shop_stamps', 0); renderStamps(); }
+
+        /* ===== QRスキャナー ===== */
+        // ★ このコードで認識するQR文字列（店舗ごとに変更）
+        const VALID_QR = '7eleven-minamiyoshinari-stamp';
+
+        const qrModal  = document.getElementById('qrModal');
+        const qrVideo  = document.getElementById('qrVideo');
+        const qrCanvas = document.getElementById('qrCanvas');
+        const qrStatus = document.getElementById('qrStatus');
+        let qrStream   = null;   // カメラの映像ストリーム
+        let qrAnimId   = null;   // requestAnimationFrameのID
+        let qrLocked   = false;  // 連続読み取り防止フラグ
+
+        function openQR() {
+            if (currentStamps >= MAX_STAMPS) { alert('スタンプは満タンです！クーポンをご利用ください。'); return; }
+            qrModal.classList.add('open');
+            qrStatus.textContent = 'QRコードを枠内に合わせてください';
+            qrStatus.className = 'qr-status';
+            qrLocked = false;
+            startCamera();
+        }
+
+        function closeQR() {
+            qrModal.classList.remove('open');
+            stopCamera();
+        }
+
+        async function startCamera() {
+            try {
+                // 背面カメラを優先
+                qrStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment', width: { ideal: 640 }, height: { ideal: 640 } }
+                });
+                qrVideo.srcObject = qrStream;
+                qrVideo.addEventListener('loadeddata', scanLoop, { once: true });
+            } catch (e) {
+                qrStatus.textContent = '⚠️ カメラの許可が必要です。ブラウザの設定を確認してください。';
+                qrStatus.className = 'qr-status error';
+            }
+        }
+
+        function stopCamera() {
+            cancelAnimationFrame(qrAnimId);
+            if (qrStream) { qrStream.getTracks().forEach(t => t.stop()); qrStream = null; }
+        }
+
+        function scanLoop() {
+            if (qrLocked) return;
+            const ctx = qrCanvas.getContext('2d');
+            const w = qrVideo.videoWidth;
+            const h = qrVideo.videoHeight;
+            if (!w || !h) { qrAnimId = requestAnimationFrame(scanLoop); return; }
+            qrCanvas.width = w; qrCanvas.height = h;
+            ctx.drawImage(qrVideo, 0, 0, w, h);
+            const imageData = ctx.getImageData(0, 0, w, h);
+            // jsQRで解析
+            const code = jsQR(imageData.data, w, h, { inversionAttempts: 'dontInvert' });
+            if (code) {
+                onQRDetected(code.data);
+            } else {
+                qrAnimId = requestAnimationFrame(scanLoop);
+            }
+        }
+
+        function onQRDetected(data) {
+            qrLocked = true;
+            if (data === VALID_QR) {
+                // ✅ 正しいQR
+                qrStatus.textContent = '✅ スキャン成功！スタンプを押しました';
+                qrStatus.className = 'qr-status success';
+                currentStamps++;
+                localStorage.setItem('seven_shop_stamps', currentStamps);
+                renderStamps();
+                setTimeout(closeQR, 1800);
+            } else {
+                // ❌ 無効なQR
+                qrStatus.textContent = '❌ このQRコードは対象外です';
+                qrStatus.className = 'qr-status error';
+                setTimeout(() => {
+                    qrStatus.textContent = 'QRコードを枠内に合わせてください';
+                    qrStatus.className = 'qr-status';
+                    qrLocked = false;
+                    scanLoop();
+                }, 1800);
+            }
+        }
+
+        // モーダル外タップで閉じる
+        qrModal.addEventListener('click', e => { if (e.target === qrModal) closeQR(); });
+
+
+        /* ===== スクロールfadeIn（IntersectionObserver） ===== */
+        const fadeEls = document.querySelectorAll('.card, .owner-section');
+        const fadeObs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); fadeObs.unobserve(e.target); } });
+        }, { threshold: 0.08 });
+        fadeEls.forEach(el => fadeObs.observe(el));
+
+        /* ===== フッターナビ スクロール ===== */
+        function scrollToTop()   { window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        function scrollToStamp() { document.querySelector('.card').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        function scrollToMap()   { document.querySelectorAll('.card')[1].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        function scrollToJob()   { document.querySelectorAll('.card')[2].scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    </script>
+</body>
+</html>
