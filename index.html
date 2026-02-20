@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>セブンイレブン 仙台南吉成店</title>
+    <title>セブンイレブン 仙台南吉成店 | デジタルスタンプカード</title>
+    <meta property="og:title" content="セブンイレブン 仙台南吉成店">
+    <meta property="og:description" content="デジタルスタンプカード・アクセス・求人情報">
+    <meta property="og:image" content="slide1.png">
+    <meta name="theme-color" content="#008060">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -358,8 +362,7 @@
             </div>
             <div class="contact-methods">
                 <a class="contact-btn contact-btn-tel" href="tel:0222776311">📞 電話で問い合わせる</a>
-                <a class="contact-btn contact-btn-mail" id="mailBtn"
-                   href="mailto:info@example.com?subject=商品についてのお問い合わせ&body=お問い合わせ種別：商品について%0A%0Aお名前：%0A%0Aご内容：">
+                <a class="contact-btn contact-btn-mail" id="mailBtn" href="/cdn-cgi/l/email-protection#aec7c0c8c1eecbd6cfc3dec2cb80cdc1c391dddbccc4cbcdda934b3b284b3d2f4d2f054d2f0a4d2f2a4d2f084d2f004d2f244b3b214d2f2a4b3e264d2c214d2f3588ccc1cad7934d2f244b3b214d2f2a4b3e264d2c214d2f354906004b260b4112344b3b284b3d2f4d2f054d2f0a4d2f2a4d2f088b9eef8b9eef4d2f244b3e234b27234112348b9eef8b9eef4d2f3a4b282b4b0017411234">
                    ✉️ メールで問い合わせる
                 </a>
             </div>
@@ -370,26 +373,29 @@
         </div>
     </div>
 
+    <!-- 紙吹雪キャンバス -->
+    <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:300;display:none;"></canvas>
+
     <!-- フッターナビ -->
     <nav class="footer-nav">
-        <button class="footer-nav-item active" onclick="scrollToTop()">
+        <button class="footer-nav-item active" id="nav-home" onclick="scrollToTop()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>ホーム
         </button>
-        <button class="footer-nav-item" onclick="scrollToStamp()">
+        <button class="footer-nav-item" id="nav-stamp" onclick="scrollToStamp()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3l-4 4-4-4"/></svg>スタンプ
         </button>
-        <button class="footer-nav-item" onclick="scrollToMap()">
+        <button class="footer-nav-item" id="nav-map" onclick="scrollToMap()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="11" r="3"/><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/></svg>アクセス
         </button>
-        <button class="footer-nav-item" onclick="scrollToJob()">
+        <button class="footer-nav-item" id="nav-job" onclick="scrollToJob()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>求人
         </button>
-        <button class="footer-nav-item" onclick="scrollToContact()">
+        <button class="footer-nav-item" id="nav-contact" onclick="scrollToContact()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>問合せ
         </button>
     </nav>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
         /* ===== 求人データ ===== */
         /* ★ 募集中のときは JOBS 配列にデータを入れる。募集停止は空配列 [] にする */
         const JOBS = [
@@ -547,6 +553,105 @@
             const body = encodeURIComponent('お問い合わせ種別：' + kind + '\n\nお名前：\n\nご内容：');
             document.getElementById('mailBtn').href = 'mailto:info@example.com?subject=' + sub + '&body=' + body;
         }
+
+        /* ===== ① リセット確認ダイアログ ===== */
+        function resetStamps() {
+            if (!confirm('スタンプをリセットしますか？')) return;
+            currentStamps = 0;
+            localStorage.setItem('seven_shop_stamps', 0);
+            renderStamps();
+        }
+
+        /* ===== ③ 紙吹雪アニメーション ===== */
+        function launchConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.display = 'block';
+            const colors = ['#ee0000','#f37021','#008060','#ffc96b','#ffffff','#ffdd00'];
+            const pieces = Array.from({length: 120}, () => ({
+                x: Math.random() * canvas.width,
+                y: -20 - Math.random() * 100,
+                r: 5 + Math.random() * 8,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rot: Math.random() * Math.PI * 2,
+                vx: (Math.random() - 0.5) * 4,
+                vy: 2 + Math.random() * 4,
+                vr: (Math.random() - 0.5) * 0.2,
+                shape: Math.random() > 0.5 ? 'rect' : 'circle'
+            }));
+            let frame = 0;
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                pieces.forEach(p => {
+                    p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot);
+                    ctx.fillStyle = p.color;
+                    ctx.globalAlpha = Math.max(0, 1 - frame / 120);
+                    if (p.shape === 'rect') {
+                        ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r);
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(0, 0, p.r / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                });
+                frame++;
+                if (frame < 150) requestAnimationFrame(draw);
+                else { ctx.clearRect(0,0,canvas.width,canvas.height); canvas.style.display = 'none'; }
+            }
+            draw();
+        }
+
+        /* ===== renderStamps に紙吹雪を追加 ===== */
+        const _origRender = renderStamps;
+        let _prevStamps = currentStamps;
+        renderStamps = function() {
+            const prev = _prevStamps;
+            _origRender();
+            if (currentStamps >= MAX_STAMPS && prev < MAX_STAMPS) {
+                launchConfetti();
+            }
+            _prevStamps = currentStamps;
+        };
+
+        /* ===== ② フッターナビをスクロールに連動 ===== */
+        const navSections = [
+            { id: 'nav-home',    el: document.body },
+            { id: 'nav-stamp',   el: document.querySelectorAll('.card')[0] },
+            { id: 'nav-map',     el: document.querySelectorAll('.card')[1] },
+            { id: 'nav-job',     el: document.querySelectorAll('.card')[2] },
+            { id: 'nav-contact', el: document.querySelectorAll('.card')[3] },
+        ];
+        function updateActiveNav() {
+            const scrollY = window.scrollY + window.innerHeight / 2;
+            let activeId = 'nav-home';
+            navSections.forEach(s => {
+                if (!s.el) return;
+                const top = s.el === document.body ? 0 : s.el.getBoundingClientRect().top + window.scrollY;
+                if (scrollY >= top) activeId = s.id;
+            });
+            document.querySelectorAll('.footer-nav-item').forEach(btn => {
+                btn.classList.toggle('active', btn.id === activeId);
+            });
+        }
+        window.addEventListener('scroll', updateActiveNav, { passive: true });
+        updateActiveNav();
+
+        /* ===== ⑥ ヒーロードットをタップでスライド移動 ===== */
+        document.querySelectorAll('#heroDots .hero-dot').forEach((dot, i) => {
+            dot.style.cursor = 'pointer';
+            dot.addEventListener('click', () => {
+                heroIdx = i;
+                carousel.scrollTo({ left: carousel.offsetWidth * i, behavior: 'smooth' });
+                document.querySelectorAll('#heroDots .hero-dot').forEach((d, j) => d.classList.toggle('active', j === i));
+            });
+        });
+
     </script>
 </body>
 </html>
